@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat UI</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        /* Layout */
+        .container {
+            display: flex;
+            height: 100vh;
+            background: #f0f2f5;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 30%;
+            background: #fff;
+            border-right: 1px solid #ddd;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar-header {
+            padding: 20px;
+            font-weight: bold;
+            font-size: 22px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .chat-list {
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        .chat-item {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            cursor: pointer;
+            border-bottom: 1px solid #f4f4f4;
+        }
+
+        .chat-item:hover {
+            background: #f7f7f7;
+        }
+
+        .chat-item.active {
+            background: #e8f0fe;
+        }
+
+        .chat-item img {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            margin-right: 12px;
+        }
+
+        .chat-item h4 {
+            font-size: 16px;
+            margin-bottom: 4px;
+        }
+
+        .chat-item p {
+            font-size: 13px;
+            color: #777;
+        }
+
+        /* Chat Area */
+        .chat-area {
+            width: 70%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chat-header {
+            height: 70px;
+            background: #fff;
+            border-bottom: 1px solid #ddd;
+            display: flex;
+            align-items: center;
+            padding: 10px 20px;
+        }
+
+        .chat-header img {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            margin-right: 15px;
+        }
+
+        .messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background: #e5ddd5;
+        }
+
+        /* Messages */
+        .message {
+            max-width: 60%;
+            padding: 12px 15px;
+            margin-bottom: 10px;
+            font-size: 15px;
+            border-radius: 10px;
+            line-height: 1.4em;
+            width: fit-content;
+        }
+
+        .received {
+            background: white;
+            align-self: flex-start;
+            border-top-left-radius: 0;
+        }
+
+        .sent {
+            background: #dcf8c6;
+            align-self: flex-end;
+            border-top-right-radius: 0;
+        }
+
+        /* Input Area */
+        .input-area {
+            height: 70px;
+            background: #fff;
+            display: flex;
+            padding: 10px;
+            border-top: 1px solid #ddd;
+        }
+
+        .input-area input {
+            flex: 1;
+            border: 1px solid #ccc;
+            padding: 12px;
+            border-radius: 5px;
+            margin-right: 10px;
+            outline: none;
+        }
+
+        .input-area button {
+            background: #4CAF50;
+            border: none;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .input-area button:hover {
+            background: #45a049;
+        }
+
+    </style>
+</head>
+<body>
+
+<div class="container">
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h2>Chats</h2>
+        </div>
+        <div class="chat-list">
+            <div class="chat-item active">
+                <img src="https://i.pravatar.cc/50?img=1" alt="">
+                <div>
+                    <h4>General Group</h4>
+                    <p>Last message...</p>
+                </div>
+            </div>
+            <div class="chat-item">
+                <img src="https://i.pravatar.cc/50?img=2" alt="">
+                <div>
+                    <h4>John Doe</h4>
+                    <p>Hey, what's up?</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chat Area -->
+    <div class="chat-area">
+        <div class="chat-header">
+            <img src="https://i.pravatar.cc/50?img=1" alt="">
+            <h3>General Group</h3>
+        </div>
+
+        <div class="messages" id="messages">
+
+        </div>
+
+        <div class="input-area">
+            <input id="msgInput" type="text" placeholder="Type a message...">
+            <button id="sendBtn">Send</button>
+        </div>
+    </div>
+
+</div>
+
+<script>
+
+    const web_socket=new WebSocket("ws:localhost:2004")
+
+    const sendBtn = document.getElementById("sendBtn");
+    const msgInput = document.getElementById("msgInput");
+    const messages = document.getElementById("messages");//div
+
+    web_socket.onopen=()=>{
+       console.log("client connected")
+    }
+
+    web_socket.onmessage = (msg) => {
+        addMessage(msg.data, "received");
+    }
+
+    function addMessage(msg,type){
+        const div = document.createElement("div");
+        div.className = "message " + type;
+        div.textContent = msg;
+        messages.appendChild(div);
+        messages.scrollTop = messages.scrollHeight;
+    }
+
+    sendBtn.addEventListener('click',function (){
+        let msg=msgInput.value.trim();
+
+        if(!msg) return;
+
+        web_socket.send(msg)
+        addMessage(msg,"send")
+        msgInput.value=""
+    })
+
+
+</script>
+
+</body>
+</html>
