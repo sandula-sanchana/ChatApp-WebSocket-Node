@@ -16,11 +16,35 @@ server_socket.on('connection',(socket)=>{
     socket.on('message',(msg)=>{
         console.log(`client says : ${msg}`)
 
-        clients.map((s)=>{
-            if (s !== socket) {
-                s.send(msg.toString())
-            }
-        })
+        const data=JSON.parse(msg);
+
+        if(data.type==="message"){
+            clients.map((s)=>{
+                if (s !== socket) {
+                    s.send(`${socket.username}: `+data.msg.toString())
+                }
+            })
+        }
+
+        if(data.type==="username"){
+            socket.username=data.username;
+            console.log(`User set username: ${socket.username}`);
+
+        }
+
+        if(data.type==="typing"){
+            clients.map((s)=>{
+                if (s !== socket) {
+                    s.send(`${socket.username}: is typing...`)
+                }
+            })
+        }
+
+
+
+
+
+
     })
 })
 

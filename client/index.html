@@ -207,14 +207,26 @@
 
 <script>
 
-    const web_socket=new WebSocket("ws:localhost:2004")
+    const username = prompt("Enter your name:");
+
+    if (!username) {
+        alert("You must enter a name to join the chat!");
+        window.location.reload();
+    }
+
+    const web_socket=new WebSocket("ws://localhost:2004")
 
     const sendBtn = document.getElementById("sendBtn");
     const msgInput = document.getElementById("msgInput");
     const messages = document.getElementById("messages");//div
 
     web_socket.onopen=()=>{
-       console.log("client connected")
+        console.log("client connected");
+
+        web_socket.send(JSON.stringify({
+            type:"username",
+            username
+        }))
     }
 
     web_socket.onmessage = (msg) => {
@@ -234,10 +246,18 @@
 
         if(!msg) return;
 
-        web_socket.send(msg)
-        addMessage(msg,"send")
-        msgInput.value=""
+        web_socket.send(JSON.stringify({
+            type: "message",
+            msg
+        }));
+
+        addMessage(`You: ${msg}`, "sent");
+        msgInput.value = "";
     })
+
+    msgInput.addEventListener("input", () => {
+        web_socket.send(JSON.stringify({ type: "typing", username }));
+    });
 
 
 </script>
