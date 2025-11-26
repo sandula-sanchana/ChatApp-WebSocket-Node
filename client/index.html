@@ -196,7 +196,7 @@
         <div class="messages" id="messages">
 
         </div>
-
+        <div id="typingStatus" class="not-typing"></div>
         <div class="input-area">
             <input id="msgInput" type="text" placeholder="Type a message...">
             <button id="sendBtn">Send</button>
@@ -230,9 +230,40 @@
     }
 
     web_socket.onmessage = (msg) => {
-        addMessage(msg.data, "received");
+        let dataS = JSON.parse(msg.data);
+
+        if (dataS.type === "message") {
+            addMessage(dataS.msg, "received");
+        }
+
+        if (dataS.type === "typing") {
+            setTyping(dataS.msg, "typing");
+        }
+
     }
 
+    function setNotification(msg, bar){
+        bar.textContent = msg;
+        setTimeout(function (){
+            bar.textContent = "";
+            bar.classList.remove("typing");
+            bar.classList.add("not-typing");
+        }, 1000);
+    }
+
+    function  setTyping(msg,type){
+        const bar=document.getElementById("typingStatus");
+
+        if (bar.classList.contains("typing")) {
+            return;
+        }else {
+            bar.classList.add("typing");
+            bar.classList.remove("not-typing");
+            setNotification(msg,bar);
+        }
+
+
+    }
     function addMessage(msg,type){
         const div = document.createElement("div");
         div.className = "message " + type;
@@ -255,8 +286,15 @@
         msgInput.value = "";
     })
 
+    /////////////////////////////////////////////////// typing function
+    let typingTimer;
+    const typingInterval = 500;
     msgInput.addEventListener("input", () => {
-        web_socket.send(JSON.stringify({ type: "typing", username }));
+        clearTimeout(typingTimer);
+
+        typingTimer = setTimeout(() => {
+            web_socket.send(JSON.stringify({ type: "typing", username }));
+        }, typingInterval);
     });
 
 
